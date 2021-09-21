@@ -242,12 +242,11 @@ void DataPollHandler::HandleSentFrame(const Mac::TxFrame &aFrame, Error aError, 
         break;
 
     case kErrorNoAck:
-        OT_ASSERT(!aFrame.GetSecurityEnabled() || aFrame.IsHeaderUpdated());
 
         aChild.IncrementIndirectTxAttempts();
         otLogInfoMac("Indirect tx to child %04x failed, attempt %d/%d", aChild.GetRloc16(),
                      aChild.GetIndirectTxAttempts(), kMaxPollTriggeredTxAttempts);
-
+        OT_ASSERT(!aFrame.GetSecurityEnabled() || aFrame.IsHeaderUpdated());
         OT_FALL_THROUGH;
 
     case kErrorChannelAccessFailure:
