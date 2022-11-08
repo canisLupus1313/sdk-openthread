@@ -183,3 +183,7 @@ if(OT_POSIX_SETTINGS_PATH)
     target_compile_definitions(ot-config INTERFACE "OPENTHREAD_CONFIG_POSIX_SETTINGS_PATH=${OT_POSIX_SETTINGS_PATH}")
 endif()
 
+option(OT_DNS_OVER_TCP "Enable dns query over tcp" OFF)
+if(OT_DNS_OVER_TCP)
+    target_compile_definitions(ot-config INTERFACE "OPENTHREAD_CONFIG_DNS_OVER_TCP=1")
+endif()

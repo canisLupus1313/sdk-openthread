@@ -36,6 +36,7 @@
 #define CONFIG_DNS_CLIENT_H_
 
 #include "config/srp_client.h"
+#include "config/ip6.h"
 
 /**
  * @def OPENTHREAD_CONFIG_DNS_CLIENT_ENABLE
@@ -149,5 +150,19 @@
 #ifndef OPENTHREAD_CONFIG_DNS_CLIENT_DEFAULT_RECURSION_DESIRED_FLAG
 #define OPENTHREAD_CONFIG_DNS_CLIENT_DEFAULT_RECURSION_DESIRED_FLAG 1
 #endif
+
+/**
+ * @def OPENTHREAD_DNS_OVER_TCP
+ *
+ * Enables dns query over tcp.
+ */
+
+#ifndef OPENTHREAD_CONFIG_DNS_OVER_TCP
+#define OPENTHREAD_CONFIG_DNS_OVER_TCP 0
+#else
+#if !OPENTHREAD_CONFIG_TCP_ENABLE && OPENTHREAD_CONFIG_DNS_OVER_TCP
+#error "TCP functionality not enabled"
+#endif
+#endif //OPENTHREAD_DNS_OVER_TCP
 
 #endif // CONFIG_DNS_CLIENT_H_

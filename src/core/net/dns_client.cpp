@@ -566,6 +566,23 @@ Error Client::Start(void)
     SuccessOrExit(error = mSocket.Open(&Client::HandleUdpReceive, this));
     SuccessOrExit(error = mSocket.Bind(0, Ip6::kNetifUnspecified));
 
+#if OPENTHREAD_CONFIG_DNS_OVER_TCP
+    {
+        otTcpEndpointInitializeArgs endpointArgs;
+
+        memset(&endpointArgs, 0x00, sizeof(endpointArgs));
+        endpointArgs.mEstablishedCallback      = HandleTcpEstablishedCallback;
+        endpointArgs.mSendDoneCallback         = HandleTcpSendDoneCallback;
+        endpointArgs.mReceiveAvailableCallback = HandleTcpReceiveAvailableCallback;
+        endpointArgs.mDisconnectedCallback     = HandleTcpDisconnectedCallback;
+        endpointArgs.mContext                  = this;
+        endpointArgs.mReceiveBuffer            = mReceiveBufferBytes;
+        endpointArgs.mReceiveBufferSize        = sizeof(mReceiveBufferBytes);
+
+        SuccessOrExit(mEndpoint.Initialize(Get<Instance>(), endpointArgs));
+    }
+#endif
+
 exit:
     return error;
 }
@@ -728,7 +745,8 @@ Error Client::StartQuery(QueryInfo &        aInfo,
     SuccessOrExit(error = AllocateQuery(aInfo, aLabel, aName, query));
     mQueries.Enqueue(*query);
 
-    SendQuery(*query, aInfo, /* aUpdateTimer */ true);
+    //SendQuery(*query, aInfo, /* aUpdateTimer */ true);
+    SendTcpQuery(*query, aInfo, /* aUpdateTimer */ true);
 
 exit:
     return error;
@@ -832,6 +850,14 @@ exit:
     {
         mTimer.FireAtIfEarlier(aInfo.mRetransmissionTime);
     }
+}
+
+void Client::SendTcpQuery(Query &aQuery, QueryInfo &aInfo, bool aUpdateTimer)
+{
+    //Ip6::SockAddr sockaddr(aInfo.mConfig.mServerSockAddr.mAddress, aInfo.mConfig.mServerSockAddr.mPort);
+    mEndpoint.Connect(AsCoreType(&aInfo.mConfig.mServerSockAddr), OT_TCP_CONNECT_NO_FAST_OPEN);
+
+    //otTcpConnect(mEndpoint, &aInfo.mConfig.mServerSockAddr, OT_TCP_CONNECT_NO_FAST_OPEN);
 }
 
 Error Client::AppendNameFromQuery(const Query &aQuery, Message &aMessage)
@@ -1108,6 +1134,30 @@ void Client::HandleTimer(void)
         mTimer.FireAt(nextTime);
     }
 }
+
+#if OPENTHREAD_CONFIG_DNS_OVER_TCP
+void Client::HandleTcpEstablishedCallback(otTcpEndpoint *aEndpoint)
+{
+    LogInfo("Dns tcp connection established.");
+}
+
+void Client::HandleTcpSendDoneCallback(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData)
+{
+}
+
+void Client::HandleTcpReceiveAvailableCallback(otTcpEndpoint *aEndpoint,
+                                                size_t         aBytesAvailable,
+                                                bool           aEndOfStream,
+                                                size_t         aBytesRemaining)
+{
+    LogInfo("Dns tcp connection established.");
+}
+
+void Client::HandleTcpDisconnectedCallback(otTcpEndpoint *aEndpoint, otTcpDisconnectedReason aReason)
+{
+}
+
+#endif
 
 } // namespace Dns
 } // namespace ot

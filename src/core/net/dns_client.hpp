@@ -735,6 +735,7 @@ private:
     void        FreeQuery(Query &aQuery);
     void        UpdateQuery(Query &aQuery, const QueryInfo &aInfo) { aQuery.Write(0, aInfo); }
     void        SendQuery(Query &aQuery, QueryInfo &aInfo, bool aUpdateTimer);
+    void        SendTcpQuery(Query &aQuery, QueryInfo &aInfo, bool aUpdateTimer);
     void        FinalizeQuery(Query &aQuery, Error aError);
     void        FinalizeQuery(Response &Response, QueryType aType, Error aError);
     static void GetCallback(const Query &aQuery, Callback &aCallback, void *&aContext);
@@ -744,6 +745,17 @@ private:
     void        ProcessResponse(const Message &aMessage);
     Error       ParseResponse(Response &aResponse, QueryType &aType, Error &aResponseError);
     void        HandleTimer(void);
+
+#if OPENTHREAD_CONFIG_DNS_OVER_TCP
+    static void HandleTcpEstablishedCallback(otTcpEndpoint *aEndpoint);
+    static void HandleTcpSendDoneCallback(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData);
+    static void HandleTcpReceiveAvailableCallback(otTcpEndpoint *aEndpoint,
+                                                  size_t         aBytesAvailable,
+                                                  bool           aEndOfStream,
+                                                  size_t         aBytesRemaining);
+    static void HandleTcpDisconnectedCallback(otTcpEndpoint *aEndpoint, otTcpDisconnectedReason aReason);
+#endif //OPENTHREAD_CONFIG_DNS_OVER_TCP
+
 #if OPENTHREAD_CONFIG_DNS_CLIENT_NAT64_ENABLE
     Error CheckAddressResponse(Response &aResponse, Error aResponseError) const;
 #endif
@@ -766,6 +778,15 @@ private:
     using RetryTimer = TimerMilliIn<Client, &Client::HandleTimer>;
 
     Ip6::Udp::Socket mSocket;
+
+#if OPENTHREAD_CONFIG_DNS_OVER_TCP
+    Ip6::Tcp::Endpoint mEndpoint;
+
+    otLinkedBuffer          mSendLink;
+    uint8_t                 mSendBufferBytes[1024];
+    uint8_t                 mReceiveBufferBytes[1024];
+#endif
+
     QueryList        mQueries;
     RetryTimer       mTimer;
     QueryConfig      mDefaultConfig;

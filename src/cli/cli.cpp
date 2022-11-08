@@ -2994,6 +2994,14 @@ template <> otError Interpreter::Process<Cmd("dns")>(Arg aArgs[])
                                                         &Interpreter::HandleDnsAddressResponse, this, config));
         error = OT_ERROR_PENDING;
     }
+    else if (aArgs[0] == "resolvetcp")
+    {
+        VerifyOrExit(!aArgs[1].IsEmpty(), error = OT_ERROR_INVALID_ARGS);
+        SuccessOrExit(error = GetDnsConfig(aArgs + 2, config));
+        SuccessOrExit(error = otDnsClientResolveAddress(GetInstancePtr(), aArgs[1].GetCString(),
+                                                        &Interpreter::HandleDnsAddressResponse, this, config));
+        error = OT_ERROR_PENDING;
+    }
 #if OPENTHREAD_CONFIG_DNS_CLIENT_NAT64_ENABLE
     else if (aArgs[0] == "resolve4")
     {

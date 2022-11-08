@@ -87,6 +87,22 @@ public:
     Header(void) { Clear(); }
 
     /**
+     * This method returns the Message Length.
+     *
+     * @returns The Message Length.
+     *
+     */
+    uint16_t GetMessageLen(void) const { return HostSwap16(mMessageLen); }
+
+    /**
+     * This method sets the Message Length.
+     *
+     * @param[in]  aMessageLen The Message Length.
+     *
+     */
+    void SetMessageLen(uint16_t aMessageLen) { mMessageLen = HostSwap16(aMessageLen); }
+
+    /**
      * This method returns the Message ID.
      *
      * @returns The Message ID value.
@@ -406,6 +422,7 @@ private:
     static constexpr uint8_t kRCodeOffset  = 0;                     // RCODE field offset.
     static constexpr uint8_t kRCodeMask    = 0x0f << kRCodeOffset;  // RCODE field mask.
 
+    uint16_t mMessageLen;// Message length used for tcp queries.
     uint16_t mMessageId; // Message identifier for requester to match up replies to outstanding queries.
     uint8_t  mFlags[2];  // DNS header flags.
     uint16_t mQdCount;   // Number of entries in the question section.
